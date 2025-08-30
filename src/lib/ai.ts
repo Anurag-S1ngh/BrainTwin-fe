@@ -3,7 +3,7 @@ import axios from "axios";
 export async function AIQueryResponse(query: string) {
   try {
     const response = await axios.post(
-      `${import.meta.env.VITE_HTTP_URL}/ai`,
+      `${import.meta.env.VITE_HTTP_URL}/api/v1/ai`,
       {
         query,
       },

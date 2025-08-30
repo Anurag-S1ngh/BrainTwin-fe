@@ -3,7 +3,7 @@ import axios from "axios";
 export const SignUpHandler = async (email: string, password: string) => {
   try {
     const response = await axios.post(
-      `${import.meta.env.VITE_HTTP_URL}/signup`,
+      `${import.meta.env.VITE_HTTP_URL}/api/v1/auth/signup`,
       {
         email,
         password,
@@ -30,7 +30,7 @@ export const SignUpHandler = async (email: string, password: string) => {
 export const SignInHandler = async (email: string, password: string) => {
   try {
     const response = await axios.post(
-      `${import.meta.env.VITE_HTTP_URL}/signin`,
+      `${import.meta.env.VITE_HTTP_URL}/api/v1/auth/signin`,
       {
         email,
         password,

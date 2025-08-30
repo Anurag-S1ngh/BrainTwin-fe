@@ -8,7 +8,7 @@ export const AddContent = async (
 ) => {
   try {
     const response = await axios.post(
-      `${import.meta.env.VITE_HTTP_URL}/content`,
+      `${import.meta.env.VITE_HTTP_URL}/api/v1/content`,
       {
         title,
         description,
@@ -37,7 +37,7 @@ export const AddContent = async (
 export const GetAllContent = async () => {
   try {
     const response = await axios.get(
-      `${import.meta.env.VITE_HTTP_URL}/content/all`,
+      `${import.meta.env.VITE_HTTP_URL}/api/v1/content/all`,
       {
         headers: {
           Authorization: localStorage.getItem("Authorization"),
@@ -60,7 +60,7 @@ export const GetAllContent = async () => {
 export const DeleteContentHandler = async (contentId: string) => {
   try {
     const response = await axios.delete(
-      `${import.meta.env.VITE_HTTP_URL}/content/${contentId}`,
+      `${import.meta.env.VITE_HTTP_URL}/api/v1/content/${contentId}`,
       {
         headers: {
           Authorization: localStorage.getItem("Authorization"),
