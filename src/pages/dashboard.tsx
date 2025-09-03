@@ -1,18 +1,25 @@
 import AddContentComponent from "@/components/add-content-component";
+import { Combobox } from "@/components/combobox";
+import { EmbedContent } from "@/components/embed-content";
 import Footer from "@/components/footer";
 import { Badge } from "@/components/ui/badge";
 import { AIQueryResponse } from "@/lib/ai";
 import { DeleteContentHandler, GetAllContent } from "@/lib/content";
-import { contentsAtom } from "@/lib/store";
-import { useAtom } from "jotai";
-import { ArrowRightIcon, Trash2Icon } from "lucide-react";
-import { useEffect, useState } from "react";
+import { ElementUrl } from "@/lib/element-url";
+import { contentsAtom, filteredContentAtom } from "@/lib/store";
+import type { AIResponse } from "@/lib/types";
+import { useAtomValue, useSetAtom } from "jotai";
+import { ArrowRightIcon, Loader2Icon, Trash2Icon } from "lucide-react";
+import { useEffect, useRef, useState } from "react";
 import { useNavigate } from "react-router-dom";
 
 export default function Dashboard() {
-  const [textRef, setTextRef] = useState<string | null>(null);
-  const [aiTextResponse, setAiResponse] = useState<string | null>();
-  const [contents, setContents] = useAtom(contentsAtom);
+  const [text, setText] = useState<string | null>(null);
+  const textRef = useRef<HTMLInputElement>(null);
+  const [aiTextResponse, setAiResponse] = useState<AIResponse | null>();
+  const [isRequestSent, setIsRequestSent] = useState<boolean>(false);
+  const setContents = useSetAtom(contentsAtom);
+  const filteredContents = useAtomValue(filteredContentAtom);
   const navigate = useNavigate();
 
   useEffect(() => {
@@ -24,54 +31,7 @@ export default function Dashboard() {
       }
 
       response.forEach((element: any) => {
-        if (element.type === "twitter") {
-          const url = element.url;
-          const tweetId = url.split("status/")[1];
-          if (tweetId) {
-            element.url = `https://twitter.com/username/status/${tweetId}`;
-            return;
-          }
-          element.url = null;
-        } else if (element.type === "youtube") {
-          const url = element.url;
-          const ytId = url.split("youtu.be/")[1];
-          if (ytId) {
-            element.url = `https://www.youtube.com/embed/${ytId}`;
-            return;
-          }
-          element.url = null;
-        } else if (element.type === "figma") {
-          const url = element.url;
-          const figmaId = url.split("design/")[1];
-          if (figmaId) {
-            element.url = `https://embed.figma.com/design/${figmaId}?node-id=0-1&embed-host=share`;
-            return;
-          }
-          element.url = null;
-        } else if (element.type === "spotify") {
-          const url = element.url;
-
-          if (!url || typeof url !== "string" || !url.startsWith("http")) {
-            element.url = null;
-            return;
-          }
-
-          try {
-            const parsedUrl = new URL(url);
-            const segments = parsedUrl.pathname.split("/").filter(Boolean);
-            const spotifyType = segments[0];
-            const spotifyId = segments[1];
-
-            if (spotifyType && spotifyId) {
-              element.url = `https://open.spotify.com/embed/${spotifyType}/${spotifyId}`;
-            } else {
-              element.url = null;
-            }
-          } catch (err) {
-            console.error("Error parsing Spotify URL:", err);
-            element.url = null;
-          }
-        }
+        element.url = ElementUrl(element.type, element.url);
       });
 
       setContents(response);
@@ -80,29 +40,31 @@ export default function Dashboard() {
   }, []);
 
   async function AIResponse() {
-    if (!textRef) {
+    if (!text) {
       return;
     }
-    const response = await AIQueryResponse(textRef);
+    const response = await AIQueryResponse(text);
     if (!response) {
       return;
     }
-    setAiResponse(response);
+    setAiResponse({ answer: response, question: text });
+    setIsRequestSent(false);
   }
 
   return (
     <>
-      <div className="mx-auto max-w-4xl w-full px-6 md:px-12 mt-24 mb-12">
+      <div className="mx-auto max-w-4xl px-6 md:px-12 mt-24 mb-12 min-h-90">
         <div className="border rounded-2xl max-w-md mx-auto p-2 py-1 flex flex-col">
           <div
+            ref={textRef}
             onInput={(e) => {
-              setTextRef(e.currentTarget.textContent);
+              setText(e.currentTarget.textContent);
             }}
             suppressContentEditableWarning
             contentEditable
             className="relative border-none outline-none p-1 h-16 overflow-y-scroll text-neutral-900"
           >
-            {!textRef && (
+            {!text && (
               <input
                 readOnly
                 defaultValue={"Ask Anything"}
@@ -112,34 +74,51 @@ export default function Dashboard() {
           </div>
           <div
             onClick={() => {
+              if (isRequestSent) {
+                return;
+              }
+              setIsRequestSent(true);
               AIResponse();
             }}
-            className="flex justify-between items-center bg-fuchsia-500 w-fit h-fit rounded-full p-1 self-end cursor-pointer"
+            className={`flex justify-between items-center w-fit h-fit rounded-full p-1 self-end cursor-pointer ${isRequestSent ? "bg-neutral-400" : "bg-fuchsia-500"} `}
           >
-            <ArrowRightIcon
-              className="text-neutral-50 size-4"
-              strokeWidth={3}
-            />
+            {isRequestSent ? (
+              <Loader2Icon
+                className="animate-spin size-4 text-neutral-50"
+                strokeWidth={3}
+              />
+            ) : (
+              <ArrowRightIcon
+                className={`text-neutral-50 size-4`}
+                strokeWidth={3}
+              />
+            )}
           </div>
         </div>
+
         {aiTextResponse && (
-          <div className="max-w-md mx-auto rounded-2xl mt-2 py-3 px-4 border bg-neutral-100 overflow-y-scroll">
-            {aiTextResponse}
+          <div className="max-w-md mx-auto rounded-2xl mt-2 py-3 px-4 border bg-neutral-100 overflow-y-scroll flex flex-col gap-2">
+            <p className="text-neutral-500 -mb-2 text-sm">
+              &gt;&gt; {aiTextResponse.question}
+            </p>
+            {aiTextResponse.answer}
           </div>
         )}
-        <AddContentComponent />
+        <div className="mt-8 mb-8 flex gap-4">
+          <AddContentComponent />
+          <Combobox />
+        </div>
         <div className="lg:columns-2 columns-1 gap-4">
-          {contents.map((content) => {
+          {filteredContents.map((content) => {
             return (
               <div
                 key={content._id}
                 className="border shadow-sm rounded-md p-4 break-inside-avoid mb-4"
               >
                 <div className="flex justify-between items-center ">
-                  <Badge className="" variant="default">
-                    {content.type}
-                  </Badge>
+                  <Badge>{content.type}</Badge>
                   <Trash2Icon
+                    className="size-4 cursor-pointer hover:text-neutral-500"
                     onClick={async () => {
                       const response = await DeleteContentHandler(content._id);
                       if (!response) {
@@ -153,7 +132,6 @@ export default function Dashboard() {
                         return newContent;
                       });
                     }}
-                    className="size-4 cursor-pointer"
                   />
                 </div>
                 <h1 className="text-neutral-900 text-xl mt-2">
@@ -162,42 +140,8 @@ export default function Dashboard() {
                 <p className="text-neutral-500 text-sm mt-2">
                   {content.description}
                 </p>
-                {content.url && content.type === "twitter" && (
-                  <div className="mt-2">
-                    <blockquote className="twitter-tweet">
-                      <a href={content.url}></a>
-                    </blockquote>
-                  </div>
-                )}
-                {content.url && content.type === "youtube" && (
-                  <div className="mt-2">
-                    <iframe
-                      src={content.url}
-                      title="YouTube video player"
-                      className="w-full h-48 rounded-md object-fit-cover"
-                      allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
-                      allowFullScreen
-                    ></iframe>
-                  </div>
-                )}
-                {content.url && content.type === "figma" && (
-                  <div className="mt-2">
-                    <iframe
-                      className="w-full h-80 rounded-md border"
-                      src="https://embed.figma.com/design/H99b6eNyPJRtpwpAZicvrv/Untitled?node-id=0-1&embed-host=share"
-                      allowFullScreen
-                    ></iframe>
-                  </div>
-                )}
-                {content.url && content.type === "spotify" && (
-                  <iframe
-                    src={content.url}
-                    width="100%"
-                    height="352"
-                    allowFullScreen
-                    allow="autoplay; clipboard-write; encrypted-media; fullscreen; picture-in-picture"
-                    loading="lazy"
-                  ></iframe>
+                {content.url && (
+                  <EmbedContent type={content.type} url={content.url} />
                 )}
               </div>
             );

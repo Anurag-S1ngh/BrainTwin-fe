@@ -22,7 +22,7 @@ export function SignInForm({
       passwordRef.current.value,
     );
     if (response === "sign in successful") {
-      navigate("/");
+      navigate("/dashboard");
       return;
     }
     if (!response) {

@@ -50,7 +50,7 @@ export default function AddContentComponent() {
     <div>
       <Dialog open={isModalOpen} onOpenChange={setIsModalOpen}>
         <DialogTrigger asChild>
-          <Button className="mt-8 mb-8">
+          <Button>
             Add Content
             <PlusIcon />
           </Button>
