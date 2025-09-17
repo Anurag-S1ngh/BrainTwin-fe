@@ -8,7 +8,7 @@ export default function Custom404() {
         <div className="flex-1 lg:flex justify-center items-center hidden h-full">
           <img
             className="w-full h-full object-cover"
-            src="../../public/404.webp"
+            src="./404.webp"
             alt="404 Error"
           />
         </div>

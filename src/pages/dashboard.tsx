@@ -9,7 +9,7 @@ import { ElementUrl } from "@/lib/element-url";
 import { contentsAtom, filteredContentAtom } from "@/lib/store";
 import type { AIResponse } from "@/lib/types";
 import { useAtomValue, useSetAtom } from "jotai";
-import { ArrowRightIcon, Loader2Icon, Trash2Icon } from "lucide-react";
+import { ArrowRightIcon, Loader, Loader2Icon, Trash2Icon } from "lucide-react";
 import { useEffect, useRef, useState } from "react";
 import { useNavigate } from "react-router-dom";
 
@@ -21,6 +21,7 @@ export default function Dashboard() {
   const setContents = useSetAtom(contentsAtom);
   const filteredContents = useAtomValue(filteredContentAtom);
   const navigate = useNavigate();
+  const [loading, setLoading] = useState<boolean>(true);
 
   useEffect(() => {
     async function main() {
@@ -35,6 +36,7 @@ export default function Dashboard() {
       });
 
       setContents(response);
+      setLoading(false);
     }
     main();
   }, []);
@@ -51,6 +53,14 @@ export default function Dashboard() {
     setIsRequestSent(false);
   }
 
+  if (loading) {
+    return (
+      <div className="flex justify-center items-center h-screen">
+        <Loader className="animate-spin text-neutral-400 h-10 w-10" />
+      </div>
+    );
+  }
+
   return (
     <>
       <div className="mx-auto max-w-4xl px-6 md:px-12 mt-24 mb-12 min-h-90">
@@ -61,7 +71,7 @@ export default function Dashboard() {
               setText(e.currentTarget.textContent);
             }}
             suppressContentEditableWarning
-            contentEditable
+            contentEditable="plaintext-only"
             className="relative border-none outline-none p-1 h-16 overflow-y-scroll text-neutral-900"
           >
             {!text && (
