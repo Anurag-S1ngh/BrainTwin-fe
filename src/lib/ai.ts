@@ -14,11 +14,13 @@ export async function AIQueryResponse(query: string) {
       },
     );
     if (response.data.msg === "ai response fetched") {
-      return response.data.aiResponse;
+      return response.data;
     }
     return false;
   } catch (error) {
-    alert(error);
+    if (axios.isAxiosError(error)) {
+      return error.response?.data ?? "Something went wrong";
+    }
   }
   return;
 }

@@ -101,7 +101,7 @@ export default function AddContentComponent() {
                       <SelectItem value="youtube">Youtube</SelectItem>
                       <SelectItem value="figma">Figma</SelectItem>
                       <SelectItem value="spotify">Spotify</SelectItem>
-                      <SelectItem value="spotify">Others</SelectItem>
+                      <SelectItem value="others">Others</SelectItem>
                     </SelectContent>
                   </Select>
                 </div>

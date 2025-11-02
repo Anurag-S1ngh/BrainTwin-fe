@@ -15,15 +15,8 @@ export const SignUpHandler = async (email: string, password: string) => {
     return false;
   } catch (error) {
     if (axios.isAxiosError(error)) {
-      if (
-        error.response?.status === 400 ||
-        error.response?.status === 409 ||
-        error.response?.status === 500
-      ) {
-        return error.response.data.error;
-      }
+      return error.response?.data.error ?? "Something went wrong";
     }
-    return false;
   }
 };
 
@@ -43,15 +36,7 @@ export const SignInHandler = async (email: string, password: string) => {
     return false;
   } catch (error) {
     if (axios.isAxiosError(error)) {
-      if (
-        error.response?.status === 400 ||
-        error.response?.status === 401 ||
-        error.response?.status === 500
-      ) {
-        return error.response.data.error;
-      }
-      return false;
+      return error.response?.data.error ?? "Something went wrong";
     }
-    return false;
   }
 };

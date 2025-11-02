@@ -28,7 +28,7 @@ export function SignInForm({
     if (!response) {
       return;
     } else {
-      toast(response);
+      toast.error(response);
       return;
     }
   };

@@ -12,6 +12,7 @@ import { useAtomValue, useSetAtom } from "jotai";
 import { ArrowRightIcon, Loader, Loader2Icon, Trash2Icon } from "lucide-react";
 import { useEffect, useRef, useState } from "react";
 import { useNavigate } from "react-router-dom";
+import { toast } from "sonner";
 
 export default function Dashboard() {
   const [text, setText] = useState<string | null>(null);
@@ -46,11 +47,12 @@ export default function Dashboard() {
       return;
     }
     const response = await AIQueryResponse(text);
-    if (!response) {
-      return;
-    }
-    setAiResponse({ answer: response, question: text });
     setIsRequestSent(false);
+    if (response.msg === "ai response fetched") {
+      setAiResponse({ answer: response, question: text });
+    } else if (response.error) {
+      toast.error(response.error);
+    }
   }
 
   if (loading) {
@@ -78,31 +80,38 @@ export default function Dashboard() {
               <input
                 readOnly
                 defaultValue={"Ask Anything"}
-                className="absolute top-1 text-neutral-400"
+                className="absolute top-1 text-neutral-400 pointer-events-none"
               />
             )}
           </div>
-          <div
-            onClick={() => {
-              if (isRequestSent) {
-                return;
-              }
-              setIsRequestSent(true);
-              AIResponse();
-            }}
-            className={`flex justify-between items-center w-fit h-fit rounded-full p-1 self-end cursor-pointer ${isRequestSent ? "bg-neutral-400" : "bg-fuchsia-500"} `}
-          >
-            {isRequestSent ? (
-              <Loader2Icon
-                className="animate-spin size-4 text-neutral-50"
-                strokeWidth={3}
-              />
-            ) : (
-              <ArrowRightIcon
-                className={`text-neutral-50 size-4`}
-                strokeWidth={3}
-              />
-            )}
+          <div className="self-end flex gap-2 justify-end items-end">
+            <p className="text-secondary-foreground/40 text-xs">
+              Limit: 50req/day
+            </p>
+            <div
+              onClick={() => {
+                if (isRequestSent) {
+                  return;
+                }
+                setIsRequestSent(true);
+                AIResponse();
+              }}
+              className={`flex justify-between items-center w-fit h-fit rounded-full p-1 cursor-pointer ${isRequestSent ? "bg-neutral-400" : "bg-fuchsia-500"} `}
+            >
+              {isRequestSent ? (
+                <Loader2Icon
+                  className="animate-spin size-4 text-neutral-50"
+                  strokeWidth={3}
+                />
+              ) : (
+                <>
+                  <ArrowRightIcon
+                    className={`text-neutral-50 size-4`}
+                    strokeWidth={3}
+                  />
+                </>
+              )}
+            </div>
           </div>
         </div>
 
